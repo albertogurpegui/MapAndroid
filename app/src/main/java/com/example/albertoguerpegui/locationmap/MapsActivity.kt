@@ -9,6 +9,7 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.widget.Toast
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -65,27 +66,35 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PLACE_PICKER_REQUEST){
-            var place = PlacePicker.getPlace(this,data)
-            map.addMarker(MarkerOptions().position(place.latLng).title(place.name.toString()))
-            map.moveCamera(CameraUpdateFactory.newLatLng(place.latLng))
+            data?.let {
+                val place = PlacePicker.getPlace(this,data)
+                addMapMarker(place.latLng, place.name.toString())
+            }
         }
+    }
+
+    private fun addMapMarker(posicion: LatLng, name: String, zoom: Float = 12f) {
+        map.addMarker(MarkerOptions().position(posicion).title(name))
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom((posicion), zoom))
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-        map.addMarker(MarkerOptions().position(sydney).title("Sydney"))
-        map.moveCamera(CameraUpdateFactory.newLatLng(sydney))
-        map.uiSettings.isZoomControlsEnabled = true
-        updateLocationUI()
-        getDeviceLocation()
+        map?.let {
+            map.uiSettings.isZoomControlsEnabled = true
+            addMapMarker(sydney, "Sydney")
+            updateLocationUI()
+        }
     }
+
+
 
     private fun updateLocationUI() {
         try {
             if (mLocationPermissionGranted) {
                 map.isMyLocationEnabled = true
                 map.uiSettings.isMyLocationButtonEnabled = true
-                fusedLocationClient.lastLocation
+                getDeviceLocation()
             }
             else {
                 map.isMyLocationEnabled = false
@@ -103,8 +112,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private fun getDeviceLocation() {
         try {
             if (mLocationPermissionGranted) {
-                val locationResult = fusedLocationClient.lastLocation
-                locationResult.addOnCompleteListener {
+                fusedLocationClient.lastLocation.addOnCompleteListener {
                     if (it.isSuccessful) {
                         mLastKnownLocation = it.result
                         map.moveCamera(
@@ -137,10 +145,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             updateLocationUI()
         }
         else {
+            mLocationPermissionGranted = false
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION)
         }
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when(requestCode) {
+            PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION -> {
+                if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }){
+                    updateLocationUI()
+                }else {
+                    Toast.makeText(this, "DEBES ACEPTAR LOS PERMISOS", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 }
