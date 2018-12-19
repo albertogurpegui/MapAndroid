@@ -9,6 +9,10 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.Toast
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
@@ -23,6 +27,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 
 
+
+
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
 
     companion object {
@@ -35,11 +41,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private var mLocationPermissionGranted = false
     private var sydney = LatLng(-34.0, 151.0)
     private var mLastKnownLocation: Location? = null
-
+    private lateinit var spinner: Spinner
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
+
+        spinner = findViewById<Spinner>(R.id.types_spinner)
+        val adapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.types_map, android.R.layout.simple_spinner_item
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapter
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         val fab = findViewById<FloatingActionButton>(R.id.fab)
@@ -85,6 +99,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
             addMapMarker(sydney, "Sydney")
             updateLocationUI()
         }
+        spinner?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                map.mapType = when(position){
+                    0->
+                        GoogleMap.MAP_TYPE_SATELLITE
+                    1->
+                        GoogleMap.MAP_TYPE_TERRAIN
+                    2->
+                        GoogleMap.MAP_TYPE_HYBRID
+                    else ->
+                        GoogleMap.MAP_TYPE_NORMAL
+                }
+            }
+        }
     }
 
 
@@ -112,9 +144,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback{
     private fun getDeviceLocation() {
         try {
             if (mLocationPermissionGranted) {
+                Log.d("MapLocation", "Se pide ultima localizacion")
                 fusedLocationClient.lastLocation.addOnCompleteListener {
                     if (it.isSuccessful) {
                         mLastKnownLocation = it.result
+                        Log.d("MapLocation", "Ultima localizacion cargada" + mLastKnownLocation?.toString())
+
                         map.moveCamera(
                             CameraUpdateFactory.newLatLngZoom(
                                 mLastKnownLocation?.let { location ->

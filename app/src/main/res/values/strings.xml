@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">LocationMap</string>
     <string name="title_activity_maps">Map</string>
+    <string-array name="types_map">
+        <item>Satellite</item>
+        <item>Terrain</item>
+        <item>Hybrid</item>
+    </string-array>
 </resources>

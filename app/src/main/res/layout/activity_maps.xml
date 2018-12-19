@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
+<RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true">
-
+    <Spinner
+            android:id="@+id/types_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
     <fragment
             android:id="@+id/map"
+            android:layout_below="@+id/types_spinner"
             class="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
@@ -15,9 +19,9 @@
             android:id="@+id/fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_marginRight="8dp"
-            android:layout_marginBottom="112dp"
+            android:layout_margin="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
             android:src="@android:drawable/ic_menu_search"/>
 
-</android.support.design.widget.CoordinatorLayout>
+</RelativeLayout>
